@@ -1,4 +1,4 @@
-package com.tstudioz.iksica;
+package com.tstud.iksica;
 
 import org.junit.Test;
 
