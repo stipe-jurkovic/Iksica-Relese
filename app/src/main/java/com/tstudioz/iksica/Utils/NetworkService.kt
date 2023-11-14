@@ -103,7 +103,7 @@ class NetworkService(private val okHttpClient: OkHttpClient) {
     fun getUserTransactions(oib: Long?): Response {
 
         val request = Request.Builder()
-                .url("https://issp.srce.hr/PretragaStudenta/StudentRacuni?oib=$oib")
+                .url("https://issp.srce.hr/student/studentracuni?oib=$oib")
                 .get()
                 .build()
 

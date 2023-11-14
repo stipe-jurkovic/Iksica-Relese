@@ -11,6 +11,7 @@
     <string name="lozinka">Lozinka</string>
     <string name="sastavnice_racuna">Sastavnice računa</string>
     <string name="subvencionirano">Ukupno subvencionirano</string>
+    <string name="placeno">Ukupno plaćeno</string>
     <string name="retry">PONOVI</string>
     <string name="iksica">Iksica</string>
     <string name="transactions">Transakcije</string>

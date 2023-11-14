@@ -7,6 +7,7 @@ import com.tstudioz.iksica.Data.Models.TransactionItem
 import com.tstudioz.iksica.Utils.Exceptions.WrongCredsException
 import okhttp3.Response
 import org.jsoup.Jsoup
+import org.w3c.dom.Element
 import timber.log.Timber
 import java.io.IOException
 
@@ -31,15 +32,31 @@ class DataParser {
 
     @Throws(IOException::class)
     fun parseAuthToken(response: Response): String? {
-        val document = Jsoup.parse(response.body?.string())
-        token = document
-                .select("#login-form > div.error > input[type=hidden]")
-                .first()
-                .attr("value")
-        Timber.d("Auth token $token ")
 
+        try {
+            // Parse the HTML content of the response using Jsoup
+            val document = Jsoup.parse(response.body?.string())
+
+            // Select the first hidden input element with a "value" attribute under a div with class "error"
+            var token0 = document.select(".login-form input[type=hidden]")
+
+            var token01 = token0.first()
+            var token02 = token01.attr("value")
+            token = token02
+
+            // Log the obtained authentication token using Timber
+            Timber.d("Auth token $token ")
+
+            // Return the extracted token (which may be null)
+            return token
+        } catch (e: Exception) {
+            // Handle exceptions, log or return a default value
+            Timber.e(e, "Error parsing authentication token")
+            return null
+        }
         return token
     }
+
 
     @Throws(IOException::class)
     fun parseLoginToken(response: Response): String? {
@@ -71,68 +88,42 @@ class DataParser {
 
         val document = Jsoup.parse(response.body?.string())
 
-        val slikaLink: String? = document
-                .select("#mainDivContent > div > section.text-center > div > div.avatar.mx-auto.white > img")
-                .attr("src")
-
+        val slikaLink: String? = document.select(".slikastud").attr("src")
         Timber.d("slikaLink  $slikaLink")
-        val saldo: String? = document
-                .select("#mainDivContent > div > section.text-center > div > div.card-body > div:nth-child(4) > div.col.border-left.border-right > p.font-weight-bold.h3")
-                ?.first()
-                ?.text()
+
+        val saldo: String? = document.select(".col-lg-3:eq(1) .toEuro").text()
         Timber.d("saldo $saldo")
-        val number: String? = document
-                .select("#mainDivContent > div > section:nth-child(3) > div > div.px-4 > div > div > table > tbody > tr.text-success > td.text-right")
-                ?.first()
-                ?.text()
+
+        val number: String? = document.select("td:contains(Izdana)")?.first()
+            ?.parent()?.select("td")?.first()?.text()
         Timber.d("number $number")
-        val user: String? = document
-                .select("#mainDivContent > div > section.text-center > div > div.card-body > h4")
-                ?.first()
-                ?.text()
+
+        val user: String? = document.select(".card-title")?.first()?.text()
         Timber.d("user $user")
-        val uciliste: String? = document
-                .select("#mainDivContent > div > section:nth-child(3) > div > div.px-4 > div > div > table > tbody > tr.text-success > td:nth-child(2)")
-                ?.first()
-                ?.text()
+
+        val uciliste: String? = document.select(".col-7 > p >span.font-weight-bold")?.first()
+            ?.nextSibling().toString()
         Timber.d("uciliste $uciliste")
-        val razinaPrava: String? = document
-                .select("#mainDivContent > div > section.text-center > div > div.card-body > div:nth-child(4) > div:nth-child(1) > p.font-weight-bold.text-success.h3")
-                ?.first()
-                ?.text()
+
+        val razinaPrava: String? = document.select(".col-lg-3:eq(0) .h5")?.text()
         Timber.d("rprava $razinaPrava")
-        val pravaOd: String? = document
-                .select("#mainDivContent > div > section.text-center > div > div.card-body > div:nth-child(8) > div > span:nth-child(1)")
-                ?.first()
-                ?.nextSibling()
-                .toString()
+
+        val pravaOd: String? = document.select("span.font-weight-bold:contains(Prava od datuma:)")?.first()
+            ?.nextSibling().toString()
         Timber.d("pod $pravaOd")
-        val pravaDo: String? = document
-                .select("#mainDivContent > div > section.text-center > div > div.card-body > div:nth-child(8) > div > span:nth-child(3)")
-                ?.first()
-                ?.nextSibling()
-                .toString()
+        val pravaDo: String? = document.select("span.font-weight-bold:contains(Prava do datuma:)")?.first()
+            ?.nextSibling().toString()
         Timber.d("pdo $pravaDo")
-        val spent: String? = document
-                .select("#mainDivContent > div > section.text-center > div > div.card-body > div:nth-child(4) > div:nth-child(3) > p.font-weight-bold.h3")
-                ?.first()
-                ?.text()
+
+        val spent: String? = document.select(".col-lg-3:eq(2) .toEuro").text()
         Timber.d("spent $spent")
-        val oib: Long? = document
-                .select("#mainDivContent > div > section.text-center > div > div.card-body > div:nth-child(6) > div > span:nth-child(7)")
-                ?.first()
-                ?.nextSibling()
-                ?.toString()
-                ?.trim()
-                ?.toLong()
+
+        val oib: Long? = document.select("span.font-weight-bold:contains(Oib:)")
+            ?.first()?.nextSibling()?.toString()?.trim()?.toLong()
         Timber.d("OIB $oib")
-        val jmbag: Long? = document
-                .select("#mainDivContent > div > section.text-center > div > div.card-body > div:nth-child(6) > div > span:nth-child(9)")
-                ?.first()
-                ?.nextSibling()
-                ?.toString()
-                ?.trim()
-                ?.toLong()
+
+        val jmbag: Long? = document.select("span.font-weight-bold:contains(JMBAG:)")?.first()
+            ?.nextSibling()?.toString()?.trim()?.toLong()
 
         return PaperUser(1,
                          "",
@@ -154,9 +145,7 @@ class DataParser {
         val document = Jsoup.parse(response.body?.string())
         val transactions = ArrayList<Transaction>()
 
-        val table = document
-                ?.select("#mainDivContent > div > div:nth-child(3) > div > table > tbody")
-                ?.first()
+        val table = document?.select("tbody")?.first()
 
         val rows = table?.select("tr")
 
@@ -196,7 +185,7 @@ class DataParser {
                 )
             }
         }
-
+        transactions.reverse()
         return transactions
     }
 
@@ -206,24 +195,19 @@ class DataParser {
 
         val mainDiv = document.getElementById("mainDivContent")
 
-        mainDiv?.let { div ->
-            val table = div.select("div:nth-child(3) > div > table")?.first()
+        mainDiv?.let { div -> document?.let {
 
-            table?.let {
                 val tableBody = it.select("tbody")?.first()
-
                 val rows = tableBody?.select("tr")
 
                 rows?.let { rows ->
                     for ((index, row) in rows.withIndex()) {
 
-                        if (index == rows.size - 1) {
-                            transactionDetails.total = row.select(" th:nth-child(1)")?.first()?.text()
-                                    ?: ""
-                            transactionDetails.subventionTotal = row.select(" th:nth-child(2)")?.first()?.text()
-                                    ?: ""
+                        /*if (index == rows.size - 1) {
+                            transactionDetails.total = row.select(" th:nth-child(1)")?.first()?.text()?: ""
+                            transactionDetails.subventionTotal = row.select(" th:nth-child(2)")?.first()?.text()?: ""
                             continue
-                        }
+                        }*/
 
                         var itemName = ""
                         var itemQuantity: Int = -1
@@ -237,8 +221,7 @@ class DataParser {
                             for ((index, data) in cols.withIndex()) {
                                 when (index) {
                                     0 -> itemName = data?.text() ?: ""
-                                    1 -> itemQuantity = data?.text()?.toInt()
-                                            ?: -1
+                                    1 -> itemQuantity = data?.text()?.toInt()?: -1
                                     2 -> itemPrice = data?.text() ?: ""
                                     3 -> itemsTotal = data?.text() ?: ""
                                     4 -> itemSubvention = data?.text() ?: ""
@@ -249,8 +232,10 @@ class DataParser {
                                 }
                             }
                         }
-                        transactionDetails.items?.add(
-                                TransactionItem(itemName, itemQuantity, itemPrice, itemsTotal, itemSubvention))
+                        if (index == 0 || transactionDetails.items?.last()?.name != itemName)
+                            transactionDetails.items?.add(TransactionItem(itemName, itemQuantity, itemPrice, itemsTotal, itemSubvention))
+                        else
+                            transactionDetails.items?.set((transactionDetails.items?.size?.minus(1) ?: -1), TransactionItem(itemName, itemQuantity + 1, itemPrice, itemsTotal, itemSubvention))
                     }
 
                 }
