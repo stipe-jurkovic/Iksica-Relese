@@ -34,6 +34,7 @@ class BottomSheetTransactionDetails : BottomSheetDialogFragment() {
         val location = contentView.findViewById(R.id.details_location) as TextView
         val time = contentView.findViewById(R.id.details_time) as TextView
         val total = contentView.findViewById(R.id.total) as TextView
+        val totalPaid = contentView.findViewById(R.id.totalPaid) as TextView
         val recycler = contentView.findViewById(R.id.details_recycler) as RecyclerView
         val progress = contentView.findViewById(R.id.progressBar) as ProgressBar
 
@@ -47,14 +48,15 @@ class BottomSheetTransactionDetails : BottomSheetDialogFragment() {
             transaction?.let {
                 location.text = it.restourant
                 time.text = "${it.date}, ${it.time}"
-                total.text = "${it.subvention} kn"
+                total.text = "${"%.2f".format(it.subvention.toFloat())} eur"
+                totalPaid.text = "${"%.2f".format(it.amount.toFloat()-it.subvention.toFloat())} eur"
             }
         })
 
-        viewModel.getCurrentTransactionItems()?.observe(this, Observer { transactionDetails ->
+        viewModel.getCurrentTransactionItems().observe(this, Observer { transactionDetails ->
             transactionDetails?.let {
                 progress.visibility = View.INVISIBLE
-                total.text = "${it.subventionTotal} kn"
+                //total.text = "${it.subventionTotal} eur"
                 adapter.updateItems(transactionDetails.items)
             }
         })

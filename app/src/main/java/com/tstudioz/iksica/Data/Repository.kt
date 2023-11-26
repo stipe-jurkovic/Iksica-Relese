@@ -165,8 +165,7 @@ class Repository constructor(private val service: NetworkService,
     }
 
     fun fetchTransactionDetails(linkOfReceipt: String) {
-        val tranDet = dataParser
-                .parseTransactionDetails(service.fetchTransactiondetails(linkOfReceipt))
+        val tranDet = dataParser.parseTransactionDetails(service.fetchTransactiondetails(linkOfReceipt))
 
         transactionDetailsData.postValue(tranDet)
         Timber.d(tranDet.subventionTotal)

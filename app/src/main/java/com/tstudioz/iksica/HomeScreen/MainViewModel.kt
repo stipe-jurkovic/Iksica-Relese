@@ -101,7 +101,7 @@ class MainViewModel : ViewModel() {
 
     private fun scrapeUserInfo() {
         viewModelScope.launch(context = Dispatchers.Main) {
-            val userData: PaperUser = async(context = Dispatchers.IO) { repository.scrapeUserInfo() }.await()
+           val userData: PaperUser = async(context = Dispatchers.IO) { repository.scrapeUserInfo() }.await()
 
             withContext(context = Dispatchers.IO) {
                 repository.updateUserData(userData)
