@@ -1,26 +1,45 @@
 package com.tstudioz.iksica.HomeScreen
 
+import android.content.Intent
 import android.os.Bundle
 import android.view.View
 import androidx.appcompat.app.AppCompatActivity
+import androidx.lifecycle.Observer
 import com.aurelhubert.ahbottomnavigation.AHBottomNavigation
 import com.aurelhubert.ahbottomnavigation.AHBottomNavigationItem
 import com.google.android.material.snackbar.Snackbar
 import com.tstudioz.iksica.R
+import com.tstudioz.iksica.SignInScreen.SignInActivity
+import com.tstudioz.iksica.SignInScreen.SignInViewModel
+import org.koin.android.viewmodel.ext.android.viewModel
 
 class HomeActivity : AppCompatActivity() {
 
     private var bNavigation: AHBottomNavigation? = null
     private var backPressed: Long = 0
     private var snack: Snackbar? = null
+    private val viewmodel: SignInViewModel by viewModel()
+
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         setupActionBar()
         setContentView(R.layout.activity_home)
 
+        checkIfIsUserLogged()
         bottomNavigationInit()
         cardFragmentInit()
+    }
+
+    private fun checkIfIsUserLogged() {
+        viewmodel.isUserLoggedAlready().observe(this, Observer {
+            it?.let { isUserLogged ->
+                if (!isUserLogged) {
+                    startActivity(Intent(this, SignInActivity::class.java))
+                    finish()
+                }
+            }
+        })
     }
 
     private fun setupActionBar() {
